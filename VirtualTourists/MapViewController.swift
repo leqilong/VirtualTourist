@@ -59,31 +59,26 @@ class MapViewController: UIViewController, MKMapViewDelegate{
                 mapView.addAnnotation(annotation)
             case .Ended:
                 let pin = Location(lat: Double(coordinate.latitude), lon: Double(coordinate.longitude), context: context)
-                
-                context.performBlock(){
                     self.flickrClient.getPhotosByLocation(Double(pin.lat!), lon: Double(pin.lon!)) { (photosArray, error) in
+                        self.context.performBlock(){
                         if let photosArray = photosArray{
                             if photosArray.count == 0 {
                                 self.displayError("No Photos Found. Search Again.")
                                 return
                             } else {
                                 for photo in photosArray{
-                                    /*GUARD: Does our photo have a key for 'id'? */
-                                    guard let id = photo[FlickrClient.FlickrResponseKeys.Id] as? String else {
-                                        self.displayError("Cannot find key '\(FlickrClient.FlickrResponseKeys.Id)' in \(photo)")
-                                        return
-                                    }
                                     /* GUARD: Does our photo have a key for 'url_m'? */
                                     guard let imageUrlString = photo[FlickrClient.FlickrResponseKeys.MediumURL] as? String else {
                                         self.displayError("Cannot find key '\(FlickrClient.FlickrResponseKeys.MediumURL)' in \(photo)")
                                         return
                                     }
-                                    let image = Photo(id: id, url: imageUrlString, context: self.context)
+                                    let image = Photo(url: imageUrlString, context: self.context)
                                     image.location = pin
                                 }
                             }
                         }else{
                             print(error?.localizedDescription)
+                        }
                         }
                     }
                     
@@ -91,10 +86,6 @@ class MapViewController: UIViewController, MKMapViewDelegate{
                     do{
                         try self.context.save()
                     }catch{}
-
-
-                }
-
             default: break
             }
         }

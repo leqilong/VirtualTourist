@@ -108,6 +108,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     func getPictures(location: Location){
         flickrClient.getPhotosByLocation(Double(location.lat!), lon: Double(location.lon!)){(photosArray, error) in
+            self.context.performBlock(){
                 if let photosArray = photosArray{
                     if photosArray.count == 0 {
                         self.isWaitingToFetch = false
@@ -115,18 +116,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                         return
                     } else {
                         for photo in photosArray{
-                            /*GUARD: Does our photo have a key for 'id'? */
-                            guard let id = photo[FlickrClient.FlickrResponseKeys.Id] as? String else {
-                                self.displayError("Cannot find key '\(FlickrClient.FlickrResponseKeys.Id)' in \(photo)")
-                                return
-                            }
                             /* GUARD: Does our photo have a key for 'url_m'? */
                             guard let imageUrlString = photo[FlickrClient.FlickrResponseKeys.MediumURL] as? String else {
                                 self.displayError("Cannot find key '\(FlickrClient.FlickrResponseKeys.MediumURL)' in \(photo)")
                                 return
                             }
-                            
-                            let image = Photo(id: id, url: imageUrlString, context: self.context)
+                            let image = Photo(url: imageUrlString, context: self.context)
                             image.location = self.location
                         }
                     }
@@ -137,6 +132,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                 }else{
                     print(error?.localizedDescription)
                 }
+            }
         }
 
     }
@@ -162,7 +158,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                 noPhotosFoundLabel.hidden = false
             }
             
-            print(section.numberOfObjects)
+            print("We have \(section.numberOfObjects) in 1 section")
             return section.numberOfObjects
         }else{
             return 1
@@ -182,8 +178,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         cell.photoImageView.clipsToBounds = true 
         cell.activityIndicator.hidden = false
         
-        if let image = img.image{
-            cell.photoImageView.image = image
+        if let imageData = img.imageData{
+            cell.photoImageView.image = UIImage(data: imageData)
             cell.activityIndicator.stopAnimating()
         }else{
             cell.activityIndicator.startAnimating()
@@ -193,7 +189,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                     let photo = UIImage(data: imageData){
                     dispatch_async(dispatch_get_main_queue()){
                         cell.photoImageView.image = photo
-                        img.image = photo
+                        let photoData = UIImageJPEGRepresentation(photo, 1.0)
+                        img.imageData = photoData
                         cell.activityIndicator.stopAnimating()
                     }
                 }else{
@@ -278,7 +275,7 @@ extension PhotoAlbumViewController{
             break
             
         case .Delete:
-            print("Insert object: \(newIndexPath)")
+            print("Delete object: \(newIndexPath)")
             deletedIndexPaths.append(indexPath!)
             break
             
