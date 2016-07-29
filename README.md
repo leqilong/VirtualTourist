@@ -8,8 +8,8 @@ The images are downloaded using Flickr API. See [here](https://www.flickr.com/se
 
 ##Core Data Model
 The core data contains two entities: 
--Poto: its attributes include imageData, id, url. The downloaded images are stored as Binary Data in core data.
--Location: its attributes are lattitude, longitude.
+- Photo: its attributes include imageData, id, url. The downloaded images are stored as Binary Data in core data.
+- Location: its attributes are lattitude, longitude.
 
 Location and Photo has one to many relationship.
 
